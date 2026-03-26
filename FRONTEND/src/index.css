@@ -1,0 +1,21 @@
+@import "tailwindcss";
+
+/* 👇 ADD THIS MAGIC LINE 👇 */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ✅ Smooth transition */
+* {
+  transition: background-color 0.3s, color 0.3s;
+}
+
+/* ✅ Light mode (default) */
+body {
+  background-color: white;
+  color: black;
+}
+
+/* ✅ Dark mode */
+html.dark body {
+  background-color: #0f172a; /* slate-900 */
+  color: white;
+}
