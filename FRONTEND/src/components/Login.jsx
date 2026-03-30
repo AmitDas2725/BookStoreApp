@@ -5,9 +5,7 @@ import axios from "axios";
 import toast from "react-hot-toast";
 
 function Login() {
-  const [isLogin, setIsLogin] = useState(true);
   const navigate = useNavigate();
-
   const { register, handleSubmit, reset, formState: { errors } } = useForm();
 
   const onSubmit = async (data) => {
@@ -15,12 +13,28 @@ function Login() {
     
     await axios.post("http://localhost:4001/user/login", userInfo)
       .then((res) => {
-        if (res.data) {
+        if (res.data && res.data.user) {
+          const loggedInUser = res.data.user;
+
+          // 1. Get existing accounts or start with an empty array
+          const existingAccounts = JSON.parse(localStorage.getItem("AllAccounts")) || [];
+
+          // 2. Check if this email is already in the list
+          const accountExists = existingAccounts.find(acc => acc.email === loggedInUser.email);
+
+          if (!accountExists) {
+            existingAccounts.push(loggedInUser);
+            localStorage.setItem("AllAccounts", JSON.stringify(existingAccounts));
+          }
+
+          // 3. Set this specific user as the current Active User
+          localStorage.setItem("Users", JSON.stringify(loggedInUser));
+
           toast.success("Logged in Successfully");
           closeModal();
+          
           setTimeout(() => {
             window.location.reload();
-            localStorage.setItem("Users", JSON.stringify(res.data.user));
           }, 1000);
         }
       })
@@ -34,7 +48,6 @@ function Login() {
   const closeModal = () => {
     const modal = document.getElementById("login_modal");
     if (modal) modal.close();
-    setIsLogin(true);
     reset();
   };
 
@@ -44,7 +57,6 @@ function Login() {
   };
 
   return (
-    /* 🚨 Added bg-transparent to fix the white background glitch from your screenshot */
     <dialog id="login_modal" className="modal bg-transparent">
       <div className="modal-box dark:bg-slate-900 dark:text-white shadow-xl relative max-w-sm w-full rounded-2xl p-8">
         
@@ -85,7 +97,7 @@ function Login() {
             </button>
 
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              Not registered?{" "}
+              New Account?{" "}
               <button type="button" onClick={goToSignup} className="text-blue-600 font-semibold hover:underline cursor-pointer bg-transparent border-none p-0">
                 Signup
               </button>
